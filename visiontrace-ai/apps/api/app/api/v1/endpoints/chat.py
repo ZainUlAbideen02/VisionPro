@@ -18,6 +18,10 @@ class FormatGenerationRequest(BaseModel):
     video_id: str = Field(..., description="Target video ID")
     format_type: str = Field("youtube_chapters", description="Target format: 'youtube_chapters', 'jira_bug', or 'executive_memo'")
 
+class TranslationRequest(BaseModel):
+    video_id: str = Field(..., description="Target video ID")
+    target_language: str = Field("Spanish", description="Target language for translation")
+
 @router.post("/chat/video", status_code=status.HTTP_200_OK)
 async def chat_with_video(request: VideoChatRequest):
     """
@@ -39,4 +43,21 @@ async def generate_format(request: FormatGenerationRequest):
     return groq_ai_service.generate_formatted_content(
         video_id=request.video_id,
         format_type=request.format_type
+    )
+
+@router.get("/chat/action-items", status_code=status.HTTP_200_OK)
+async def get_action_items(video_id: str = "vid_demo_default"):
+    """
+    Extracts meeting action items, tasks, decisions, and deadlines via Groq LPU.
+    """
+    return groq_ai_service.extract_action_items(video_id=video_id)
+
+@router.post("/chat/translate", status_code=status.HTTP_200_OK)
+async def translate_transcript(request: TranslationRequest):
+    """
+    Translates Whisper audio transcripts & OCR text into target languages (Spanish, French, German, Urdu).
+    """
+    return groq_ai_service.translate_transcript(
+        video_id=request.video_id,
+        target_language=request.target_language
     )

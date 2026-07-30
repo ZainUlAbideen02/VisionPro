@@ -49,6 +49,29 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, keyfr
         document.body.appendChild(a);
         a.click();
         a.remove();
+      } else if (selectedFormat === 'pdf') {
+        setRenderProgress(45);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/export/pdf-report`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            video_id: activeVideoId || 'vid_sample_01',
+            video_title: activeVideoTitle || 'VisionTrace_Meeting_Summary',
+            include_action_items: true,
+            include_keyframes: true
+          })
+        });
+
+        setRenderProgress(85);
+        const data = await response.json();
+        setRenderProgress(100);
+
+        const a = document.createElement('a');
+        a.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${data.download_url}`;
+        a.download = `${activeVideoTitle || 'VisionTrace'}_summary_report.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
       } else {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/export/markers`, {
           method: 'POST',
@@ -95,6 +118,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, keyfr
       desc: 'Stitch matching keyframe scene clips into a single video summary using FFmpeg.',
       icon: Video,
       tag: 'FFmpeg Video'
+    },
+    {
+      id: 'pdf',
+      title: 'PDF Summary Report (.pdf)',
+      desc: 'Polished PDF meeting summary report with executive summary, action items, and keyframes.',
+      icon: FileText,
+      tag: 'Executive PDF'
     },
     {
       id: 'xml',

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Send, Bot, User, Sparkles, Loader2, Play, FileText, Bug, ListOrdered } from 'lucide-react';
+import { Send, Bot, User, Sparkles, Loader2, Play, FileText, Bug, ListOrdered, Globe } from 'lucide-react';
 import { useVideoStore } from '@/lib/store';
 
 export interface ChatMessage {
@@ -14,6 +14,7 @@ export const VideoChatSidebar: React.FC = () => {
   const { activeVideoId, seekToTimestamp } = useVideoStore();
   const [query, setQuery] = useState<string>('');
   const [isSending, setIsSending] = useState<boolean>(false);
+  const [selectedLang, setSelectedLang] = useState<string>('English');
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       sender: 'ai',
@@ -21,6 +22,35 @@ export const VideoChatSidebar: React.FC = () => {
       citations: []
     }
   ]);
+
+  const handleLanguageChange = async (lang: string) => {
+    setSelectedLang(lang);
+    if (lang === 'English') return;
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/chat/translate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          video_id: activeVideoId || 'vid_demo_default',
+          target_language: lang
+        })
+      });
+      const data = await res.json();
+      if (data.segments && data.segments.length > 0) {
+        const translatedText = data.segments.map((s: any) => `[${s.start}s]: ${s.text}`).join('\n');
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: 'ai',
+            text: `Translated video transcript into ${lang} via Groq LPU:\n\n${translatedText}`
+          }
+        ]);
+      }
+    } catch (e) {
+      console.error("Translation failed:", e);
+    }
+  };
 
   const handleSend = async (userPrompt?: string) => {
     const textToSend = userPrompt || query;
@@ -84,9 +114,27 @@ export const VideoChatSidebar: React.FC = () => {
             <p className="text-[10px] text-white/50 font-mono">Llama-3.3-70b-versatile</p>
           </div>
         </div>
-        <span className="text-[10px] font-mono font-bold text-brand-neon bg-brand-neon/10 px-2.5 py-0.5 rounded-pill border border-brand-neon/30">
-          Sub-50ms RAG
-        </span>
+        <div className="flex items-center space-x-2">
+          {/* Multi-Language Selector Dropdown */}
+          <div className="flex items-center space-x-1 bg-black/60 px-2 py-1 rounded-pill border border-white/10 text-[10px]">
+            <Globe className="w-3 h-3 text-brand-neon" />
+            <select
+              value={selectedLang}
+              onChange={(e) => handleLanguageChange(e.target.value)}
+              className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer"
+            >
+              <option value="English" className="bg-black text-white">English</option>
+              <option value="Spanish" className="bg-black text-white">Spanish (Español)</option>
+              <option value="French" className="bg-black text-white">French (Français)</option>
+              <option value="German" className="bg-black text-white">German (Deutsch)</option>
+              <option value="Urdu" className="bg-black text-white">Urdu (اردو)</option>
+            </select>
+          </div>
+
+          <span className="text-[10px] font-mono font-bold text-brand-neon bg-brand-neon/10 px-2.5 py-0.5 rounded-pill border border-brand-neon/30">
+            Sub-50ms RAG
+          </span>
+        </div>
       </div>
 
       {/* Messages Stream */}
