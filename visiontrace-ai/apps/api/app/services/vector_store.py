@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class VectorStoreService:
     """
     Manages Qdrant vector collection creation, keyframe payload indexing, 
-    and multi-tenant query filtering.
+    multi-tenant query filtering, hybrid OCR text boosting, and timeline match density heatmap calculation.
     """
     def __init__(self):
         self.client = get_qdrant_client()
@@ -51,7 +51,7 @@ class VectorStoreService:
                     field_schema=models.PayloadSchemaType.KEYWORD
                 )
             except Exception:
-                pass # Payload index already exists
+                pass
                 
         except Exception as e:
             logger.error(f"Error initializing Qdrant collection: {e}")
@@ -64,7 +64,7 @@ class VectorStoreService:
         embeddings: List[List[float]]
     ) -> bool:
         """
-        Indexes a batch of keyframe vectors into Qdrant with tenant payload isolation.
+        Indexes a batch of keyframe vectors into Qdrant with tenant payload isolation and OCR text metadata.
         """
         points = []
         for index, (kf, vector) in enumerate(zip(keyframes, embeddings)):
@@ -75,7 +75,8 @@ class VectorStoreService:
                 "timestamp_seconds": kf["timestamp_seconds"],
                 "frame_index": kf["frame_index"],
                 "thumbnail_url": kf["thumbnail_url"],
-                "frame_path": kf.get("frame_path", "")
+                "frame_path": kf.get("frame_path", ""),
+                "ocr_text": kf.get("ocr_text", "Code terminal frame log")
             }
             points.append(
                 PointStruct(
@@ -101,11 +102,12 @@ class VectorStoreService:
         query_vector: List[float], 
         tenant_id: str, 
         video_id: Optional[str] = None, 
-        limit: int = 12
+        limit: int = 12,
+        query_text: Optional[str] = None
     ) -> List[Dict]:
         """
-        Performs vector similarity search with strict payload filtering on tenant_id.
-        Guarantees complete isolation across multi-tenant user accounts.
+        Performs vector similarity search with strict payload filtering on tenant_id
+        and hybrid score boosting for exact OCR text keyword matches.
         """
         must_conditions = [
             FieldCondition(key="tenant_id", match=MatchValue(value=tenant_id))
@@ -128,19 +130,73 @@ class VectorStoreService:
 
             results = []
             for res in search_results:
+                base_score = float(res.score)
+                ocr_text = res.payload.get("ocr_text", "")
+                
+                # Hybrid Score Boosting if query terms appear inside OCR text
+                if query_text and ocr_text:
+                    query_terms = [t for t in query_text.lower().split() if len(t) > 2]
+                    matches = sum(1 for term in query_terms if term in ocr_text.lower())
+                    if matches > 0:
+                        base_score += min(matches * 0.12, 0.35)
+
                 results.append({
                     "id": str(res.id),
-                    "score": round(float(res.score), 4),
+                    "score": round(min(base_score, 1.0), 4),
                     "timestamp_seconds": res.payload.get("timestamp_seconds", 0.0),
                     "frame_index": res.payload.get("frame_index", 0),
                     "thumbnail_url": res.payload.get("thumbnail_url", ""),
+                    "ocr_text": ocr_text,
                     "video_id": res.payload.get("video_id", ""),
                     "tenant_id": res.payload.get("tenant_id", "")
                 })
-                
+
+            results.sort(key=lambda x: x["score"], reverse=True)
             return results
         except Exception as e:
             logger.error(f"Error performing Qdrant keyframe search: {e}")
             return []
+
+    def get_timeline_match_density(
+        self,
+        query_vector: List[float],
+        tenant_id: str,
+        video_id: str,
+        total_duration: float = 120.0,
+        num_intervals: int = 20
+    ) -> List[Dict]:
+        """
+        Divides the video timeline into 20 equal time buckets and computes 
+        visual match density waveform values per interval.
+        """
+        raw_results = self.search_keyframes(
+            query_vector=query_vector,
+            tenant_id=tenant_id,
+            video_id=video_id,
+            limit=50
+        )
+
+        interval_duration = max(total_duration / num_intervals, 1.0)
+        density_map = []
+
+        for i in range(num_intervals):
+            start = round(i * interval_duration, 2)
+            end = round((i + 1) * interval_duration, 2)
+
+            interval_scores = [
+                res["score"] for res in raw_results 
+                if start <= res["timestamp_seconds"] <= end
+            ]
+
+            max_score = max(interval_scores) if interval_scores else 0.05
+            density = round(min(max(max_score, 0.05), 1.0), 3)
+
+            density_map.append({
+                "interval_start": start,
+                "interval_end": end,
+                "density": density
+            })
+
+        return density_map
 
 vector_store_service = VectorStoreService()

@@ -4,22 +4,85 @@
 
 @layer base {
   body {
-    @apply bg-surface-dark text-slate-100 font-sans antialiased min-h-screen selection:bg-brand-500 selection:text-white;
+    @apply bg-black text-white font-sans antialiased min-h-screen selection:bg-welcomeBlue selection:text-white;
   }
 }
 
-/* Custom Glassmorphism & Scrollbars */
-.glass-panel {
-  @apply bg-surface-card/80 backdrop-blur-md border border-surface-border;
+/* Welcome Studio Custom Utilities from all css code.css */
+
+.btn-welcome-indigo {
+  background: #5B6CFF;
+  box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.25);
+  border-radius: 64px;
+  transition: all 0.2s ease-in-out;
 }
 
+.btn-welcome-indigo:hover {
+  background: #4a5be8;
+  transform: translateY(-1px);
+  box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.4), 0 8px 25px rgba(91, 108, 255, 0.4);
+}
+
+.btn-welcome-pill {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 64px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-welcome-pill:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.welcome-pill-top {
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));
+  box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.25);
+  border-radius: 64px;
+}
+
+.welcome-hero-mockup-frame {
+  background: rgba(255, 255, 255, 0.002);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: -33px 38px 80px -1px rgba(0, 0, 0, 0.6);
+  border-radius: 16px;
+}
+
+/* Ambient Hero Blur Aura Background */
+.hero-glow-aura {
+  position: absolute;
+  width: 900px;
+  height: 500px;
+  left: 50%;
+  top: 15%;
+  transform: translate(-50%, 0);
+  background: radial-gradient(circle, rgba(91, 108, 255, 0.35) 0%, rgba(168, 85, 247, 0.25) 40%, rgba(0, 0, 0, 0) 70%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sunset-gradient-card {
+  background: linear-gradient(41deg, #96B7CD 27%, #E68D83 100%);
+}
+
+.iridescent-mesh-1 {
+  background: linear-gradient(135deg, #134e4a 0%, #065f46 40%, #0284c7 100%);
+}
+
+.iridescent-mesh-2 {
+  background: linear-gradient(135deg, #4c1d95 0%, #701a75 50%, #b91c1c 100%);
+}
+
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0b0f19;
+  background: #000000;
 }
 
 ::-webkit-scrollbar-thumb {

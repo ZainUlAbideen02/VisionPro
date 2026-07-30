@@ -3,6 +3,7 @@ export interface KeyframeItem {
   frame_index: number;
   timestamp_seconds: number;
   thumbnail_url: string;
+  ocr_text?: string;
   score?: number;
 }
 
@@ -12,14 +13,14 @@ export interface VideoUploadResponse {
   file_size_bytes: number;
   duration_seconds: number;
   keyframe_count: number;
-  tenant_id: str;
+  tenant_id: string;
   status: string;
   keyframes: KeyframeItem[];
 }
 
 export interface VideoItem {
   video_id: string;
-  title: str;
+  title: string;
   filename: string;
   duration_seconds: number;
   keyframe_count: number;

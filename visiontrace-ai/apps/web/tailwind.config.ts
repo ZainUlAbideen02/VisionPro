@@ -9,13 +9,10 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        welcomeBlue: '#5B6CFF',
-        welcomeGreen: '#00EB8D',
-        welcomeYellow: '#F3FFAB',
-        welcomeDark: '#000000',
-        welcomeCard: 'rgba(255, 255, 255, 0.08)',
-        welcomeBorder: 'rgba(255, 255, 255, 0.1)',
         brand: {
+          blue: '#5B6CFF',       // Primary CTA Accent (Buttons, Highlights)
+          neon: '#00EB8D',       // Attendance / Success Green Badge
+          lime: '#F3FFAB',       // Accent Highlight Yellow
           50: '#eef2ff',
           100: '#e0e7ff',
           500: '#5B6CFF',
@@ -23,11 +20,33 @@ const config: Config = {
           700: '#4338ca',
           900: '#312e81',
         },
+        surface: {
+          black: '#000000',      // Pure Black Base Background
+          card: 'rgba(255, 255, 255, 0.08)', // Frosted glass cards
+          border: 'rgba(255, 255, 255, 0.1)',  // Subtle borders
+          dark: '#000000',
+          hover: 'rgba(255, 255, 255, 0.12)',
+        },
+        welcomeBlue: '#5B6CFF',
+        welcomeGreen: '#00EB8D',
+        welcomeYellow: '#F3FFAB',
+        welcomeDark: '#000000',
+        welcomeCard: 'rgba(255, 255, 255, 0.08)',
+        welcomeBorder: 'rgba(255, 255, 255, 0.1)',
         cyanGlow: '#06b6d4',
         accentViolet: '#a855f7',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'],
+      },
+      borderRadius: {
+        'pill': '64px',          // Pill-shaped CTA buttons & search input
+        'card': '16px',          // Video container & keyframe cards
+      },
+      boxShadow: {
+        'inset-glow': 'inset 1px 1px 1px rgba(255, 255, 255, 0.25)',
+        'hero-mockup': '-33px 38px 80px -1px rgba(0, 0, 0, 0.6)',
+        'glow-cyan': '0 0 25px rgba(6, 182, 212, 0.4)',
       },
       animation: {
         'marquee-up': 'marqueeUp 20s linear infinite',

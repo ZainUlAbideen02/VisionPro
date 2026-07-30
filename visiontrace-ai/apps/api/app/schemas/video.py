@@ -6,6 +6,7 @@ class KeyframeItem(BaseModel):
     frame_index: int
     timestamp_seconds: float
     thumbnail_url: str
+    ocr_text: Optional[str] = None
     score: Optional[float] = None
 
 class VideoUploadResponse(BaseModel):

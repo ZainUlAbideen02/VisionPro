@@ -8,21 +8,22 @@ from app.core.config import settings
 from app.services.video_processor import extract_keyframes_scene_detection
 from app.services.embedder import embedder_service
 from app.services.vector_store import vector_store_service
+from app.services.ocr_processor import extract_ocr_text
 from app.services.ws_manager import ws_manager
 
 logger = logging.getLogger(__name__)
 
 async def _process_video_internal(video_id: str, tenant_id: str, video_path: str) -> Dict:
     """
-    Internal async worker executing video keyframe extraction, SigLIP vectorization,
-    Qdrant payload indexation, and WebSocket status streaming.
+    Internal async worker executing video keyframe extraction, OCR text parsing,
+    SigLIP 2 vectorization, Qdrant payload indexation, and WebSocket status streaming.
     """
     video_keyframe_dir = os.path.join(settings.KEYFRAME_DIR, video_id)
     
     # 1. Notify start of keyframe extraction
     await ws_manager.broadcast_progress(video_id, {
         "status": "extracting_keyframes",
-        "progress": 25,
+        "progress": 20,
         "step": "Running visual scene change detection...",
         "video_id": video_id
     })
@@ -33,10 +34,21 @@ async def _process_video_internal(video_id: str, tenant_id: str, video_path: str
         threshold=0.15
     )
 
-    # 2. Notify start of SigLIP 2 embedding generation
+    # 2. Notify start of OCR text extraction
+    await ws_manager.broadcast_progress(video_id, {
+        "status": "extracting_ocr_text",
+        "progress": 45,
+        "step": "Extracting OCR text from keyframes (terminal logs, code editor text)...",
+        "video_id": video_id
+    })
+
+    for kf in keyframes:
+        kf["ocr_text"] = extract_ocr_text(kf["frame_path"])
+
+    # 3. Notify start of SigLIP 2 embedding generation
     await ws_manager.broadcast_progress(video_id, {
         "status": "generating_embeddings",
-        "progress": 60,
+        "progress": 70,
         "step": f"Generating SigLIP 2 visual vectors for {len(keyframes)} keyframes...",
         "keyframe_count": len(keyframes),
         "video_id": video_id
@@ -47,11 +59,11 @@ async def _process_video_internal(video_id: str, tenant_id: str, video_path: str
         vector = embedder_service.embed_image(kf["frame_path"])
         embeddings.append(vector)
 
-    # 3. Notify start of vector indexing
+    # 4. Notify start of vector indexing
     await ws_manager.broadcast_progress(video_id, {
         "status": "indexing_vectors",
-        "progress": 85,
-        "step": "Upserting payload-filtered vectors to Qdrant...",
+        "progress": 90,
+        "step": "Upserting payload-filtered vectors & OCR text to Qdrant...",
         "video_id": video_id
     })
 
@@ -62,7 +74,7 @@ async def _process_video_internal(video_id: str, tenant_id: str, video_path: str
         embeddings=embeddings
     )
 
-    # 4. Notify completion
+    # 5. Notify completion
     result = {
         "status": "completed",
         "progress": 100,
@@ -82,5 +94,5 @@ def process_video_task(video_id: str, tenant_id: str, video_path: str):
     return asyncio.run(_process_video_internal(video_id, tenant_id, video_path))
 
 def run_video_processing_async(video_id: str, tenant_id: str, video_path: str):
-    """Helper method for running tasks in FastAPI background threads if Celery/Redis is unconfigured."""
+    """Helper method for running tasks in FastAPI background threads."""
     asyncio.run(_process_video_internal(video_id, tenant_id, video_path))

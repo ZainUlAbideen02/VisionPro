@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Maximize, Film } from 'lucide-react';
 import { useVideoStore } from '@/lib/store';
 import { formatTimestamp } from '@/lib/utils';
+import { TimelineHeatmap } from './TimelineHeatmap';
 
 export const InteractivePlayer: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -20,7 +21,6 @@ export const InteractivePlayer: React.FC = () => {
 
   const [duration, setDuration] = useState<number>(0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [volume, setVolume] = useState<number>(1);
 
   // Sync video element time when global Zustand currentTime changes (e.g. keyframe card clicked)
   useEffect(() => {
@@ -81,131 +81,148 @@ export const InteractivePlayer: React.FC = () => {
   };
 
   return (
-    <div className="relative flex flex-col bg-surface-card border border-surface-border rounded-2xl overflow-hidden shadow-2xl">
-      {/* Header bar */}
-      <div className="flex items-center justify-between px-5 py-3 bg-surface-dark/80 border-b border-surface-border backdrop-blur-md">
-        <div className="flex items-center space-x-3">
-          <Film className="w-5 h-5 text-brand-500" />
-          <h2 className="text-sm font-semibold text-slate-100 truncate max-w-xs md:max-w-md">
-            {activeVideoTitle}
-          </h2>
-        </div>
-        <div className="text-xs font-mono text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-full border border-cyan-500/30">
-          Timestamp: {formatTimestamp(currentTime)} / {formatTimestamp(duration)}
-        </div>
-      </div>
-
-      {/* Video Container */}
-      <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden group">
-        {activeVideoUrl ? (
-          <video
-            ref={videoRef}
-            src={activeVideoUrl}
-            onTimeUpdate={handleTimeUpdate}
-            onLoadedMetadata={handleLoadedMetadata}
-            onEnded={() => setIsPlaying(false)}
-            onClick={togglePlay}
-            className="w-full h-full object-contain cursor-pointer"
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center p-8 text-center text-slate-400">
-            <Film className="w-16 h-16 text-slate-600 mb-4 animate-pulse-subtle" />
-            <p className="text-base font-medium text-slate-300">No active video loaded</p>
-            <p className="text-xs text-slate-500 mt-1">Upload an MP4 video or select a sample to start visual search</p>
+    <div className="space-y-4">
+      <div className="relative flex flex-col bg-surface-black border border-surface-border rounded-card overflow-hidden shadow-hero-mockup backdrop-blur-2xl">
+        {/* Header bar */}
+        <div className="flex items-center justify-between px-5 py-3 bg-black/90 border-b border-surface-border">
+          <div className="flex items-center space-x-3">
+            <div className="p-1.5 rounded-lg bg-brand-blue/20 text-brand-blue">
+              <Film className="w-4 h-4" />
+            </div>
+            <h2 className="text-sm font-semibold text-white truncate max-w-xs md:max-w-md">
+              {activeVideoTitle}
+            </h2>
           </div>
-        )}
 
-        {/* Video Overlay Play Button */}
-        {activeVideoUrl && !isPlaying && (
-          <button 
-            onClick={togglePlay}
-            className="absolute p-5 rounded-full bg-brand-600/90 hover:bg-brand-500 text-white shadow-2xl transition-transform transform hover:scale-110"
-          >
-            <Play className="w-8 h-8 fill-current ml-1" />
-          </button>
-        )}
-      </div>
-
-      {/* Interactive Controls & Timeline */}
-      <div className="p-4 bg-surface-dark border-t border-surface-border space-y-3">
-        {/* Timeline Slider with Keyframe Markers */}
-        <div className="relative w-full flex items-center">
-          <input
-            type="range"
-            min={0}
-            max={duration || 100}
-            step={0.1}
-            value={currentTime}
-            onChange={handleSeekSlider}
-            className="w-full h-2 bg-surface-border rounded-lg appearance-none cursor-pointer accent-brand-500 focus:outline-none"
-          />
-          {/* Keyframe Markers on Timeline */}
-          {duration > 0 && keyframes.map((kf, i) => {
-            const leftPercent = (kf.timestamp_seconds / duration) * 100;
-            return (
-              <div
-                key={i}
-                onClick={() => seekToTimestamp(kf.timestamp_seconds)}
-                title={`Keyframe at ${formatTimestamp(kf.timestamp_seconds)}`}
-                className="absolute top-1/2 -translate-y-1/2 w-1.5 h-3 bg-cyanGlow rounded-full cursor-pointer hover:scale-150 transition-transform shadow-glow-cyan"
-                style={{ left: `${leftPercent}%` }}
-              />
-            );
-          })}
-        </div>
-
-        {/* Playback Button Bar */}
-        <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={togglePlay}
-              disabled={!activeVideoUrl}
-              className="p-2 rounded-lg bg-surface-hover hover:bg-brand-600 text-slate-200 hover:text-white transition-colors"
-            >
-              {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-            </button>
-
-            <button
-              onClick={() => seekToTimestamp(Math.max(0, currentTime - 5))}
-              disabled={!activeVideoUrl}
-              className="p-2 rounded-lg bg-surface-hover hover:bg-surface-border text-slate-300 transition-colors"
-              title="-5 seconds"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={() => seekToTimestamp(Math.min(duration, currentTime + 5))}
-              disabled={!activeVideoUrl}
-              className="p-2 rounded-lg bg-surface-hover hover:bg-surface-border text-slate-300 transition-colors"
-              title="+5 seconds"
-            >
-              <RotateCw className="w-4 h-4" />
-            </button>
-
-            <span className="text-xs font-mono text-slate-400 pl-2">
+          <div className="flex items-center space-x-3 text-xs font-mono">
+            <span className="flex items-center gap-1.5 text-brand-neon font-semibold bg-brand-neon/10 px-3 py-1 rounded-pill border border-brand-neon/30">
+              <span className="w-2 h-2 rounded-full bg-brand-neon animate-ping" /> LIVE 1080p
+            </span>
+            <span className="text-white/70 bg-white/5 px-3 py-1 rounded-pill border border-white/10">
               {formatTimestamp(currentTime)} / {formatTimestamp(duration)}
             </span>
           </div>
+        </div>
 
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={toggleMute}
-              className="p-2 rounded-lg bg-surface-hover hover:bg-surface-border text-slate-300 transition-colors"
-            >
-              {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4" />}
-            </button>
+        {/* Video Viewport Container */}
+        <div className="relative aspect-video bg-neutral-950 flex items-center justify-center overflow-hidden group">
+          {activeVideoUrl ? (
+            <video
+              ref={videoRef}
+              src={activeVideoUrl}
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+              onEnded={() => setIsPlaying(false)}
+              onClick={togglePlay}
+              className="w-full h-full object-contain cursor-pointer"
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center p-8 text-center text-white/50 space-y-3">
+              <div className="p-5 rounded-full bg-surface-card border border-surface-border">
+                <Film className="w-12 h-12 text-brand-blue animate-pulse" />
+              </div>
+              <div>
+                <p className="text-base font-semibold text-white">No active video loaded</p>
+                <p className="text-xs text-white/50 mt-1">Upload an MP4 video to start visual scene search & keyframe jumping</p>
+              </div>
+            </div>
+          )}
 
-            <button
-              onClick={toggleFullscreen}
-              disabled={!activeVideoUrl}
-              className="p-2 rounded-lg bg-surface-hover hover:bg-surface-border text-slate-300 transition-colors"
+          {/* Video Overlay Play Button */}
+          {activeVideoUrl && !isPlaying && (
+            <button 
+              onClick={togglePlay}
+              className="absolute p-5 rounded-full bg-brand-blue/90 hover:bg-brand-blue text-white shadow-2xl transition-transform transform group-hover:scale-110 shadow-inset-glow"
             >
-              <Maximize className="w-4 h-4" />
+              <Play className="w-8 h-8 fill-current ml-1" />
             </button>
+          )}
+        </div>
+
+        {/* Interactive Controls & Timeline */}
+        <div className="p-4 bg-black border-t border-surface-border space-y-3">
+          {/* Timeline Slider with Keyframe Markers */}
+          <div className="relative w-full flex items-center">
+            <input
+              type="range"
+              min={0}
+              max={duration || 100}
+              step={0.1}
+              value={currentTime}
+              onChange={handleSeekSlider}
+              className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-blue focus:outline-none"
+            />
+            {/* Keyframe Markers on Timeline */}
+            {duration > 0 && keyframes.map((kf, i) => {
+              const leftPercent = (kf.timestamp_seconds / duration) * 100;
+              return (
+                <div
+                  key={i}
+                  onClick={() => seekToTimestamp(kf.timestamp_seconds)}
+                  title={`Keyframe at ${formatTimestamp(kf.timestamp_seconds)}`}
+                  className="absolute top-1/2 -translate-y-1/2 w-2 h-3 bg-brand-neon rounded-full cursor-pointer hover:scale-150 transition-transform shadow-glow-cyan"
+                  style={{ left: `${leftPercent}%` }}
+                />
+              );
+            })}
+          </div>
+
+          {/* Playback Button Bar */}
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={togglePlay}
+                disabled={!activeVideoUrl}
+                className="p-2.5 rounded-pill bg-brand-blue text-white shadow-inset-glow hover:bg-brand-blue/80 transition-colors disabled:opacity-40"
+              >
+                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
+              </button>
+
+              <button
+                onClick={() => seekToTimestamp(Math.max(0, currentTime - 5))}
+                disabled={!activeVideoUrl}
+                className="p-2.5 rounded-pill bg-white/5 border border-white/10 hover:bg-white/10 text-white/80 transition-colors disabled:opacity-40"
+                title="-5 seconds"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => seekToTimestamp(Math.min(duration, currentTime + 5))}
+                disabled={!activeVideoUrl}
+                className="p-2.5 rounded-pill bg-white/5 border border-white/10 hover:bg-white/10 text-white/80 transition-colors disabled:opacity-40"
+                title="+5 seconds"
+              >
+                <RotateCw className="w-4 h-4" />
+              </button>
+
+              <span className="text-xs font-mono text-white/60 pl-2">
+                {formatTimestamp(currentTime)} / {formatTimestamp(duration)}
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={toggleMute}
+                className="p-2.5 rounded-pill bg-white/5 border border-white/10 hover:bg-white/10 text-white/80 transition-colors"
+              >
+                {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4" />}
+              </button>
+
+              <button
+                onClick={toggleFullscreen}
+                disabled={!activeVideoUrl}
+                className="p-2.5 rounded-pill bg-white/5 border border-white/10 hover:bg-white/10 text-white/80 transition-colors disabled:opacity-40"
+              >
+                <Maximize className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Visual Match Density Heatmap Bar */}
+      <TimelineHeatmap />
     </div>
   );
 };
