@@ -1,0 +1,14 @@
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.6.0
+pydantic-settings>=2.1.0
+qdrant-client>=1.7.3
+torch>=2.1.2
+transformers>=4.38.0
+pillow>=10.2.0
+opencv-python-headless>=4.9.0.80
+ffmpeg-python>=0.2.0
+python-multipart>=0.0.9
+python-jose[cryptography]>=3.3.0
+requests>=2.31.0
+numpy>=1.26.0
