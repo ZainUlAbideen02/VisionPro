@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Maximize, Film } from 'lucide-react';
+import { Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Maximize, Film, Eye } from 'lucide-react';
 import { useVideoStore } from '@/lib/store';
 import { formatTimestamp } from '@/lib/utils';
 import { TimelineHeatmap } from './TimelineHeatmap';
+import { BoundingBoxOverlay } from './BoundingBoxOverlay';
+import { SceneChapterBar } from './SceneChapterBar';
 
 export const InteractivePlayer: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -22,6 +24,7 @@ export const InteractivePlayer: React.FC = () => {
   const [duration, setDuration] = useState<number>(0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isHybridMode, setIsHybridMode] = useState<boolean>(true);
+  const [showOverlays, setShowOverlays] = useState<boolean>(true);
 
   const transcripts = [
     { start: 1.2, end: 4.5, text: "Starting server maintenance and checking system terminal status." },
@@ -103,6 +106,17 @@ export const InteractivePlayer: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-3 text-xs font-mono">
+            <button
+              onClick={() => setShowOverlays(!showOverlays)}
+              className={`px-3 py-1 rounded-pill border text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+                showOverlays
+                  ? 'border-brand-neon/40 bg-brand-neon/15 text-brand-neon'
+                  : 'border-white/10 bg-white/5 text-white/60 hover:text-white'
+              }`}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>{showOverlays ? 'Overlays ON' : 'Overlays OFF'}</span>
+            </button>
             <span className="flex items-center gap-1.5 text-brand-neon font-semibold bg-brand-neon/10 px-3 py-1 rounded-pill border border-brand-neon/30">
               <span className="w-2 h-2 rounded-full bg-brand-neon animate-ping" /> LIVE 1080p
             </span>
@@ -114,6 +128,9 @@ export const InteractivePlayer: React.FC = () => {
 
         {/* Video Viewport Container */}
         <div className="relative aspect-video bg-neutral-950 flex items-center justify-center overflow-hidden group">
+          {/* Bounding Box SVG Overlay */}
+          <BoundingBoxOverlay isVisible={showOverlays} />
+
           {activeVideoUrl ? (
             <video
               ref={videoRef}
@@ -231,6 +248,9 @@ export const InteractivePlayer: React.FC = () => {
 
       {/* Visual Match Density Heatmap Bar */}
       <TimelineHeatmap />
+
+      {/* Semantic Video Scene Chapters */}
+      <SceneChapterBar />
 
       {/* SPEECH & VISION HYBRID SEARCH TOGGLE & AUDIO TRANSCRIPT PANEL */}
       <div className="p-5 rounded-card bg-surface-card border border-surface-border space-y-4 shadow-xl backdrop-blur-2xl">
