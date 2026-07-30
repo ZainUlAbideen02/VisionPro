@@ -10,7 +10,7 @@ export const Navigation: React.FC = () => {
 
   const navItems = [
     { label: 'Features', href: '/videos/demo' },
-    { label: 'Pricing', href: '/dashboard' },
+    { label: 'Pricing', href: '/pricing' },
     { label: 'Events', href: '/videos/demo' },
     { label: 'About', href: '/settings' },
     { label: 'Blog', href: '/' },

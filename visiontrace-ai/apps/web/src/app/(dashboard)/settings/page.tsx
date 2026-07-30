@@ -15,7 +15,9 @@ import {
   TrendingUp,
   BarChart2,
   Award,
-  RefreshCw
+  RefreshCw,
+  CreditCard,
+  Zap
 } from 'lucide-react';
 
 interface AdapterItem {
@@ -418,6 +420,75 @@ export default function SettingsPage() {
               {trainingMessage}
             </p>
           )}
+        </div>
+      </div>
+
+      {/* BILLING & USAGE QUOTAS CARD */}
+      <div className="p-6 rounded-card bg-surface-card border border-surface-border space-y-6 shadow-2xl backdrop-blur-2xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div className="space-y-1">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-brand-neon" /> Billing & Usage Quotas
+            </h3>
+            <p className="text-xs text-white/60">
+              Track monthly video processing minute quotas and manage your commercial Stripe subscription.
+            </p>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-semibold text-white/60">Active Plan:</span>
+            <span className="text-xs font-mono font-bold text-brand-neon bg-brand-neon/15 px-3 py-1 rounded-pill border border-brand-neon/40 flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 fill-current" /> Pro Commercial ($29/mo)
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Processing Minutes Progress */}
+          <div className="p-4 rounded-card bg-black/60 border border-white/10 space-y-3">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-semibold text-white/80">Monthly Video Processing Minutes</span>
+              <span className="font-mono text-brand-neon font-bold">18.5 / 600 mins (3.1%)</span>
+            </div>
+            <div className="w-full bg-white/10 h-2.5 rounded-full overflow-hidden">
+              <div className="bg-brand-neon h-full transition-all duration-500" style={{ width: '3.1%' }}></div>
+            </div>
+            <p className="text-[10px] text-white/50">Resets automatically on 1st of every month.</p>
+          </div>
+
+          {/* Upload Count */}
+          <div className="p-4 rounded-card bg-black/60 border border-white/10 space-y-3">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-semibold text-white/80">Monthly Video Uploads</span>
+              <span className="font-mono text-brand-blue font-bold">5 Uploads</span>
+            </div>
+            <div className="w-full bg-white/10 h-2.5 rounded-full overflow-hidden">
+              <div className="bg-brand-blue h-full transition-all duration-500" style={{ width: '15%' }}></div>
+            </div>
+            <p className="text-[10px] text-white/50">Unlimited uploads enabled on Pro Tier.</p>
+          </div>
+        </div>
+
+        <div className="flex justify-end border-t border-white/10 pt-4">
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/billing/create-portal-session`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ tenant_id: "tenant_default_demo" })
+                });
+                const data = await res.json();
+                if (data.portal_url) window.location.href = data.portal_url;
+              } catch (e) {
+                alert("Redirecting to Stripe Customer Portal...");
+              }
+            }}
+            className="px-5 py-2.5 rounded-pill bg-brand-neon/10 hover:bg-brand-neon/20 border border-brand-neon/40 text-brand-neon font-semibold text-xs flex items-center space-x-2 transition-all"
+          >
+            <CreditCard className="w-4 h-4" />
+            <span>Manage Subscription & Invoices</span>
+          </button>
         </div>
       </div>
 

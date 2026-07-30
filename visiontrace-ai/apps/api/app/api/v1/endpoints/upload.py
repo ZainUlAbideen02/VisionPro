@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.core.security import get_current_tenant_id
 from app.schemas.video import VideoUploadResponse, KeyframeItem
 from app.tasks.video_tasks import run_video_processing_async, process_video_task
+from app.services.stripe_service import stripe_billing_service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -23,6 +24,13 @@ async def upload_video(
     for keyframe extraction, SigLIP embedding, and Qdrant vector indexing.
     Streams real-time progress updates over WebSocket /ws/video-status/{video_id}.
     """
+    # 1. Quota Enforcement Guard (HTTP 402 Payment Required)
+    if not stripe_billing_service.check_quota_available(tenant_id, estimated_minutes=2.0):
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Monthly video processing minute quota exceeded. Upgrade to Pro Tier at /pricing to unlock unlimited processing."
+        )
+
     if not file.filename.lower().endswith(('.mp4', '.mov', '.avi', '.mkv', '.webm')):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
