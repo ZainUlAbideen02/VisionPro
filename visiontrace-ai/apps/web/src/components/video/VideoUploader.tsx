@@ -84,13 +84,13 @@ export const VideoUploader: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-surface-card border border-surface-border rounded-card p-6 shadow-2xl backdrop-blur-2xl">
-      <h3 className="text-lg font-semibold text-white mb-1 flex items-center gap-2">
-        <UploadCloud className="w-5 h-5 text-brand-blue" /> Upload Video for Scene Search
-      </h3>
-      <p className="text-xs text-white/60 mb-4">
-        Supports MP4, WebM, MOV. Visual scene detection keyframes will be embedded into SigLIP 2 vectors automatically.
-      </p>
+    <div className="w-full bg-black border border-white/20 p-6 space-y-4 font-mono">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
+          <UploadCloud className="w-4 h-4 text-white" /> Video File Upload Zone
+        </h3>
+        <span className="text-[10px] text-white/50 border border-white/20 px-2 py-0.5">MP4 / WEBM / MOV</span>
+      </div>
 
       {/* Drag and Drop Zone */}
       <div
@@ -98,10 +98,10 @@ export const VideoUploader: React.FC = () => {
         onDragLeave={() => setIsDragOver(false)}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`relative flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-card cursor-pointer transition-all ${
+        className={`relative flex flex-col items-center justify-center p-8 border-2 border-dashed cursor-pointer transition-colors ${
           isDragOver 
-            ? 'border-brand-blue bg-brand-blue/10' 
-            : 'border-surface-border bg-black/50 hover:border-white/40 hover:bg-black/70'
+            ? 'border-white bg-white/10' 
+            : 'border-white/20 bg-black hover:border-white/50'
         }`}
       >
         <input
@@ -114,44 +114,44 @@ export const VideoUploader: React.FC = () => {
 
         {isUploading ? (
           <div className="flex flex-col items-center space-y-4 py-4 text-center w-full max-w-md">
-            <Loader2 className="w-10 h-10 text-brand-blue animate-spin" />
+            <Loader2 className="w-8 h-8 text-white animate-spin" />
             <div className="space-y-1">
-              <p className="text-sm font-semibold text-white">
+              <p className="text-xs font-bold text-white uppercase">
                 {wsStepMessage || uploadStatusMessage || "Processing video..."}
               </p>
-              <p className="text-xs text-brand-neon font-mono font-semibold">
-                Live WebSocket Progress: {wsProgress}%
+              <p className="text-[11px] text-white/70">
+                Processing Progress: {wsProgress}%
               </p>
             </div>
 
-            {/* Live Progress Bar */}
-            <div className="w-full h-2.5 bg-white/10 rounded-pill overflow-hidden shadow-inner">
+            {/* Sharp Progress Bar */}
+            <div className="w-full h-2 bg-white/10 border border-white/20">
               <div 
-                className="h-full bg-gradient-to-r from-brand-blue via-cyanGlow to-brand-neon transition-all duration-300 shadow-glow-cyan" 
+                className="h-full bg-white transition-all duration-300" 
                 style={{ width: `${Math.max(wsProgress, 10)}%` }} 
               />
             </div>
           </div>
         ) : selectedFile ? (
-          <div className="flex items-center space-x-4 w-full max-w-md p-3.5 bg-black rounded-card border border-white/15">
-            <div className="p-3 rounded-xl bg-brand-blue/20 text-brand-blue">
-              <FileVideo className="w-7 h-7" />
+          <div className="flex items-center space-x-4 w-full max-w-md p-3 bg-black border border-white/30">
+            <div className="p-2 border border-white/20 text-white">
+              <FileVideo className="w-5 h-5" />
             </div>
             <div className="flex-1 truncate">
-              <p className="text-sm font-medium text-white truncate">{selectedFile.name}</p>
-              <p className="text-xs text-white/50">{formatBytes(selectedFile.size)}</p>
+              <p className="text-xs font-bold text-white truncate">{selectedFile.name}</p>
+              <p className="text-[10px] text-white/50">{formatBytes(selectedFile.size)}</p>
             </div>
-            <CheckCircle2 className="w-6 h-6 text-brand-neon" />
+            <CheckCircle2 className="w-5 h-5 text-white" />
           </div>
         ) : (
           <div className="flex flex-col items-center text-center space-y-2">
-            <div className="p-4 rounded-full bg-brand-blue/15 text-brand-blue mb-1 group-hover:scale-110 transition-transform">
-              <UploadCloud className="w-8 h-8" />
+            <div className="p-3 border border-white/20 text-white mb-1">
+              <UploadCloud className="w-6 h-6" />
             </div>
-            <p className="text-sm font-medium text-white">
-              Drag and drop your video here, or <span className="text-brand-blue underline font-semibold">browse</span>
+            <p className="text-xs font-semibold text-white uppercase tracking-wider">
+              Drag & drop video here, or <span className="underline">click to browse</span>
             </p>
-            <p className="text-xs text-white/40">Maximum file size: 500MB</p>
+            <p className="text-[10px] text-white/40">Supported Formats: MP4, WebM, MOV (Max 500MB)</p>
           </div>
         )}
       </div>
