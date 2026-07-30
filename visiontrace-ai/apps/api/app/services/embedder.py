@@ -27,7 +27,7 @@ class SigLIPEmbedder:
         return cls._instance
 
     def _ensure_model_loaded(self):
-        if self._model is None and self._processor is None:
+        if self._model is None:
             self._init_model()
 
     def _init_model(self):
@@ -51,8 +51,8 @@ class SigLIPEmbedder:
                 f"Failed to load SigLIP model '{model_id}' directly ({e}). "
                 "Activating high-fidelity fallback vector generator for dev environment."
             )
-            self._model = None
-            self._processor = None
+            self._model = False
+            self._processor = False
             self._vector_dim = 768
 
     def set_active_adapter(self, adapter_name: Optional[str]) -> bool:
@@ -120,7 +120,7 @@ class SigLIPEmbedder:
         Computes normalized visual embedding vector for a keyframe image.
         """
         self._ensure_model_loaded()
-        if self._model is not None and self._processor is not None:
+        if self._model and self._processor:
             try:
                 image = Image.open(image_path).convert("RGB")
                 inputs = self._processor(images=image, return_tensors="pt").to(self._device)
@@ -142,7 +142,7 @@ class SigLIPEmbedder:
         Computes normalized text embedding vector for natural language queries.
         """
         self._ensure_model_loaded()
-        if self._model is not None and self._processor is not None:
+        if self._model and self._processor:
             try:
                 inputs = self._processor(text=[query_text], return_tensors="pt", padding=True).to(self._device)
                 with torch.no_grad():

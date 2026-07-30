@@ -11,13 +11,19 @@ except Exception:
         class VectorParams:
             def __init__(self, **kwargs): pass
         class PointStruct:
-            def __init__(self, **kwargs): pass
+            def __init__(self, id=None, vector=None, payload=None, **kwargs):
+                self.id = id
+                self.vector = vector
+                self.payload = payload
     Distance = models.Distance
     VectorParams = models.VectorParams
     PointStruct = models.PointStruct
-    Filter = None
-    FieldCondition = None
-    MatchValue = None
+    class Filter:
+        def __init__(self, **kwargs): pass
+    class FieldCondition:
+        def __init__(self, **kwargs): pass
+    class MatchValue:
+        def __init__(self, **kwargs): pass
 
 from app.core.config import settings
 from app.core.database import get_qdrant_client
