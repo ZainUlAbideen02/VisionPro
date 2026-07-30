@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { UploadCloud, FileVideo, Loader2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import { useVideoStore } from '@/lib/store';
 import { formatBytes } from '@/lib/utils';
 
 export const VideoUploader: React.FC = () => {
+  const router = useRouter();
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [wsProgress, setWsProgress] = useState<number>(0);
@@ -40,6 +42,7 @@ export const VideoUploader: React.FC = () => {
             keyframes: data.keyframes
           }, localFileUrl);
           ws.close();
+          router.push(`/videos/${videoId}`);
         }
       } catch (err) {
         console.error("Failed to parse WebSocket message:", err);
@@ -66,6 +69,9 @@ export const VideoUploader: React.FC = () => {
     
     if (response && response.video_id) {
       connectWebSocket(response.video_id, localFileUrl);
+      setTimeout(() => {
+        router.push(`/videos/${response.video_id}`);
+      }, 1500);
     }
   };
 

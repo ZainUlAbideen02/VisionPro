@@ -71,7 +71,7 @@ const DashboardPage = () => {
         </div>
 
         <Link
-          href="/videos/demo"
+          href={`/videos/${activeVideoId || 'vid_sample_01'}`}
           className="px-5 py-2.5 btn-welcome-indigo text-white font-medium text-xs shadow-lg flex items-center space-x-2 w-fit"
         >
           <Sparkles className="w-4 h-4 fill-current" />
@@ -203,7 +203,7 @@ const DashboardPage = () => {
               </div>
 
               <Link
-                href="/videos/demo"
+                href={`/videos/${vid.id}`}
                 className="flex items-center justify-between pt-3 border-t border-surface-border text-xs font-semibold text-brand-blue group-hover:text-white transition-colors"
               >
                 <span>Open in Search Studio</span>

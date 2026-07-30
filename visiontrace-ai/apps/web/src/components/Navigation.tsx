@@ -60,10 +60,10 @@ export const Navigation: React.FC = () => {
             </Link>
 
             <Link
-              href="/videos/demo"
+              href="/dashboard"
               className="px-6 py-2.5 btn-welcome-indigo text-white font-medium text-sm inline-flex items-center space-x-2 shadow-lg"
             >
-              <span>Demo</span>
+              <span>Upload & Search Studio</span>
             </Link>
           </div>
         </div>
