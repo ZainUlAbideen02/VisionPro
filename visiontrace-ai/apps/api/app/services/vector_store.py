@@ -1,8 +1,23 @@
 import logging
 import uuid
-from typing import List, Dict, Optional
-from qdrant_client.http import models
-from qdrant_client.http.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
+from typing import List, Dict, Optional, Any
+try:
+    from qdrant_client.http import models
+    from qdrant_client.http.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
+except Exception:
+    class models:
+        class Distance:
+            COSINE = "COSINE"
+        class VectorParams:
+            def __init__(self, **kwargs): pass
+        class PointStruct:
+            def __init__(self, **kwargs): pass
+    Distance = models.Distance
+    VectorParams = models.VectorParams
+    PointStruct = models.PointStruct
+    Filter = None
+    FieldCondition = None
+    MatchValue = None
 
 from app.core.config import settings
 from app.core.database import get_qdrant_client

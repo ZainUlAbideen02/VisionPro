@@ -52,7 +52,8 @@ export const VideoUploader: React.FC = () => {
   };
 
   const handleFileChange = async (file: File) => {
-    if (!file.type.includes('video')) {
+    const isVideoExt = /\.(mp4|mov|avi|mkv|webm)$/i.test(file.name);
+    if (!file.type.includes('video') && !isVideoExt) {
       alert("Please upload a valid MP4, WebM, or MOV video file.");
       return;
     }

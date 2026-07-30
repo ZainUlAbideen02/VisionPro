@@ -24,11 +24,14 @@ class SigLIPEmbedder:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(SigLIPEmbedder, cls).__new__(cls)
-            cls._instance._init_model()
         return cls._instance
 
+    def _ensure_model_loaded(self):
+        if self._model is None and self._processor is None:
+            self._init_model()
+
     def _init_model(self):
-        """Initializes Hugging Face SigLIP model & processor."""
+        """Initializes Hugging Face SigLIP model & processor on demand."""
         model_id = settings.SIGLIP_MODEL_ID
         logger.info(f"Loading SigLIP model '{model_id}' on device '{self._device}'...")
         try:
@@ -116,6 +119,7 @@ class SigLIPEmbedder:
         """
         Computes normalized visual embedding vector for a keyframe image.
         """
+        self._ensure_model_loaded()
         if self._model is not None and self._processor is not None:
             try:
                 image = Image.open(image_path).convert("RGB")
@@ -137,6 +141,7 @@ class SigLIPEmbedder:
         """
         Computes normalized text embedding vector for natural language queries.
         """
+        self._ensure_model_loaded()
         if self._model is not None and self._processor is not None:
             try:
                 inputs = self._processor(text=[query_text], return_tensors="pt", padding=True).to(self._device)
