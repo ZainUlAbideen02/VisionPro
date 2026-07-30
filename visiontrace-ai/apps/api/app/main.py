@@ -16,21 +16,24 @@ app = FastAPI(
     description="VisionTrace AI Microservice — Multi-Tenant Visual Video Search Engine powered by SigLIP 2 & Qdrant"
 )
 
-# Configure CORS Middleware
+# Configure CORS Middleware explicitly for Web frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=settings.ALLOWED_ORIGINS + ["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Mount static file directories for keyframe preview thumbnails & uploads
+# Ensure static directories exist
 os.makedirs(settings.KEYFRAME_DIR, exist_ok=True)
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 
+# Mount static file directories for keyframe preview thumbnails & video uploads
 app.mount("/keyframes", StaticFiles(directory=settings.KEYFRAME_DIR), name="keyframes")
+app.mount("/static/keyframes", StaticFiles(directory=settings.KEYFRAME_DIR), name="static_keyframes")
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+app.mount("/static/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="static_uploads")
 
 # Include API v1 Router
 app.include_router(api_router, prefix=settings.API_V1_STR)
@@ -39,6 +42,7 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 async def root():
     return {
         "app": settings.PROJECT_NAME,
+        "status": "online",
         "version": "1.0.0",
         "docs": "/docs",
         "api_v1": settings.API_V1_STR
