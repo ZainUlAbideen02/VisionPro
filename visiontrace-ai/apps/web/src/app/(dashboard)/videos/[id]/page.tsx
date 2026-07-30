@@ -4,7 +4,10 @@ import React, { useState } from 'react';
 import { InteractivePlayer } from '@/components/video/InteractivePlayer';
 import { KeyframeSearchResult } from '@/components/video/KeyframeSearchResult';
 import { ExportModal } from '@/components/video/ExportModal';
-import { Search, Sparkles, Loader2, Filter, Info, PlayCircle, Download } from 'lucide-react';
+import { VideoSummaryDrawer } from '@/components/video/VideoSummaryDrawer';
+import { DualStreamPlayer } from '@/components/video/DualStreamPlayer';
+import { VideoChatSidebar } from '@/components/video/VideoChatSidebar';
+import { Search, Sparkles, Loader2, Filter, Info, PlayCircle, Download, Layers, Monitor, Bot, Grid } from 'lucide-react';
 import { useVideoStore } from '@/lib/store';
 
 export default function VideoStudioPage() {
@@ -20,6 +23,8 @@ export default function VideoStudioPage() {
   } = useVideoStore();
 
   const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'player' | 'dual' | 'summary'>('player');
+  const [rightPaneMode, setRightPaneMode] = useState<'results' | 'copilot'>('results');
 
   const sampleSearchQueries = [
     "Show me when the server terminal turned red",
@@ -44,7 +49,7 @@ export default function VideoStudioPage() {
 
   return (
     <div className="space-y-6">
-      {/* Studio Header & Export Button */}
+      {/* Studio Header & View Mode Switch */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-surface-border">
         <div>
           <h1 className="text-2xl font-normal tracking-tight text-white flex items-center gap-2">
@@ -56,6 +61,34 @@ export default function VideoStudioPage() {
         </div>
 
         <div className="flex items-center space-x-3">
+          {/* Tab Selector */}
+          <div className="flex items-center space-x-1.5 p-1 rounded-pill bg-black/60 border border-white/10 text-xs">
+            <button
+              onClick={() => setActiveTab('player')}
+              className={`px-3 py-1 rounded-pill font-semibold transition-all ${
+                activeTab === 'player' ? 'bg-brand-blue text-white shadow-inset-glow' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              Interactive Player
+            </button>
+            <button
+              onClick={() => setActiveTab('dual')}
+              className={`px-3 py-1 rounded-pill font-semibold transition-all ${
+                activeTab === 'dual' ? 'bg-brand-neon text-black font-bold shadow-glow-cyan' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              Dual-Stream View
+            </button>
+            <button
+              onClick={() => setActiveTab('summary')}
+              className={`px-3 py-1 rounded-pill font-semibold transition-all ${
+                activeTab === 'summary' ? 'bg-brand-neon text-black font-bold shadow-glow-cyan' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              AI Summary
+            </button>
+          </div>
+
           <button
             onClick={() => setIsExportOpen(true)}
             className="px-4 py-2 rounded-pill bg-white/10 hover:bg-white/20 border border-white/15 text-white font-medium text-xs flex items-center space-x-2 transition-all shadow-lg"
@@ -63,18 +96,16 @@ export default function VideoStudioPage() {
             <Download className="w-4 h-4 text-brand-neon" />
             <span>Export Highlights</span>
           </button>
-
-          <span className="text-xs font-semibold text-brand-neon bg-brand-neon/10 px-3.5 py-1 rounded-pill border border-brand-neon/30 font-mono">
-            tenant_default_demo
-          </span>
         </div>
       </div>
 
       {/* Dual-Pane Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* LEFT PANE: Synchronized Interactive Video Player (7 Columns on LG) */}
+        {/* LEFT PANE: Video Player / Dual Stream / AI Summary (7 Columns on LG) */}
         <div className="lg:col-span-7 space-y-4 sticky top-24">
-          <InteractivePlayer />
+          {activeTab === 'player' && <InteractivePlayer />}
+          {activeTab === 'dual' && <DualStreamPlayer />}
+          {activeTab === 'summary' && <VideoSummaryDrawer />}
 
           {/* Quick Info Callout */}
           <div className="p-4 rounded-card bg-surface-card border border-surface-border flex items-start space-x-3 text-xs text-white/70 backdrop-blur-xl">
@@ -85,8 +116,35 @@ export default function VideoStudioPage() {
           </div>
         </div>
 
-        {/* RIGHT PANE: Natural Language Search & Results Grid (5 Columns on LG) */}
-        <div className="lg:col-span-5 space-y-6">
+        {/* RIGHT PANE: Natural Language Search & Groq AI Co-Pilot (5 Columns on LG) */}
+        <div className="lg:col-span-5 space-y-4">
+          {/* Right Pane Mode Switcher Header */}
+          <div className="flex items-center justify-between p-1 rounded-card bg-surface-card border border-surface-border text-xs">
+            <button
+              onClick={() => setRightPaneMode('results')}
+              className={`flex-1 py-2 rounded-pill font-semibold flex items-center justify-center space-x-2 transition-all ${
+                rightPaneMode === 'results' ? 'bg-brand-blue text-white shadow-inset-glow' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              <Grid className="w-4 h-4" />
+              <span>Visual Scene Search</span>
+            </button>
+
+            <button
+              onClick={() => setRightPaneMode('copilot')}
+              className={`flex-1 py-2 rounded-pill font-semibold flex items-center justify-center space-x-2 transition-all ${
+                rightPaneMode === 'copilot' ? 'bg-brand-neon text-black font-bold shadow-glow-cyan' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              <Bot className="w-4 h-4" />
+              <span>Groq LPU Co-Pilot</span>
+            </button>
+          </div>
+
+          {rightPaneMode === 'copilot' ? (
+            <VideoChatSidebar />
+          ) : (
+            <div className="space-y-6">
           {/* Pill-Shaped Natural Language Search Box */}
           <div className="p-6 rounded-card bg-surface-card border border-surface-border shadow-2xl backdrop-blur-2xl space-y-4">
             <form onSubmit={handleSearchSubmit} className="space-y-3">
@@ -173,6 +231,8 @@ export default function VideoStudioPage() {
               <p className="text-xs text-white/50">
                 Try uploading a video or using different natural language query terms.
               </p>
+            </div>
+          )}
             </div>
           )}
         </div>

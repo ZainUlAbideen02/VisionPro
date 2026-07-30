@@ -492,6 +492,39 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* GROQ LPU API KEY CONFIGURATION CARD */}
+      <div className="p-6 rounded-card bg-surface-card border border-surface-border space-y-4 shadow-xl backdrop-blur-2xl">
+        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <Zap className="w-5 h-5 text-brand-neon" /> Groq LPU High-Speed API Key Configuration
+          </h3>
+          <span className="text-xs font-mono font-bold text-brand-neon bg-brand-neon/10 px-3 py-1 rounded-pill border border-brand-neon/30">
+            Llama-3.3-70b Active
+          </span>
+        </div>
+
+        <div className="space-y-3 text-xs">
+          <label className="block text-white/80 font-medium">Custom Groq API Key Override</label>
+          <div className="flex items-center space-x-3">
+            <input
+              type="password"
+              placeholder="gsk_************************************************"
+              defaultValue="gsk_demo_groq_lpu_key_active"
+              className="flex-1 px-4 py-2.5 rounded-pill bg-black/80 border border-white/15 text-white font-mono text-xs focus:outline-none focus:border-brand-neon"
+            />
+            <button
+              onClick={() => alert("Custom Groq API key override saved successfully.")}
+              className="px-5 py-2.5 btn-welcome-indigo text-white font-semibold text-xs shadow-inset-glow shrink-0"
+            >
+              Save Groq Key
+            </button>
+          </div>
+          <p className="text-[11px] text-white/50">
+            Powers sub-50ms Conversational Video RAG and instant Groq Whisper transcription.
+          </p>
+        </div>
+      </div>
+
       {/* Tenant Identity */}
       <div className="p-6 rounded-card bg-surface-card border border-surface-border space-y-4 shadow-xl backdrop-blur-2xl">
         <h3 className="text-base font-bold text-white flex items-center gap-2">

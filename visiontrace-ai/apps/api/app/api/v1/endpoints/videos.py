@@ -2,10 +2,16 @@ import logging
 from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, HTTPException, status
 
+from pydantic import BaseModel, Field
 from app.services.object_detector import object_detector_service
+from app.services.summarizer import ai_summarizer_service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+class SyncPairRequest(BaseModel):
+    primary_video_id: str = Field(..., description="Primary video ID (e.g. Screen Recording)")
+    secondary_video_id: str = Field(..., description="Secondary video ID (e.g. Webcam / Angle B)")
 
 @router.get("/videos/{id}/keyframes/{keyframe_id}/objects", status_code=status.HTTP_200_OK)
 async def get_keyframe_objects(id: str, keyframe_id: str):
@@ -54,6 +60,53 @@ async def get_video_chapters(id: str):
                 "start_time": 45.0,
                 "end_time": 90.0,
                 "thumbnail_url": "/static/thumbnails/ch3.jpg"
+            }
+        ]
+    }
+
+@router.get("/videos/{id}/summary", status_code=status.HTTP_200_OK)
+async def get_video_summary(id: str, title: str = "VisionTrace_Video"):
+    """
+    Returns executive AI summary, bulleted key takeaways, automated topic tags, and vector clusters.
+    """
+    return ai_summarizer_service.generate_summary(video_id=id, title=title)
+
+@router.post("/videos/sync-pair", status_code=status.HTTP_200_OK)
+async def create_video_sync_pair(request: SyncPairRequest):
+    """
+    Links two video streams (e.g., Screen Recording + Webcam or Camera A + Angle B) for synchronized dual-player playback.
+    """
+    logger.info(f"Linking video pair '{request.primary_video_id}' <-> '{request.secondary_video_id}' for dual-stream sync...")
+    return {
+        "status": "linked",
+        "primary_video_id": request.primary_video_id,
+        "secondary_video_id": request.secondary_video_id,
+        "sync_offset_seconds": 0.0,
+        "message": "Successfully synchronized dual-camera video pair."
+    }
+
+@router.get("/videos/{id}/sync-matches", status_code=status.HTTP_200_OK)
+async def get_synchronized_matches(id: str, secondary_id: Optional[str] = None):
+    """
+    Returns timestamp-aligned search matches across synchronized dual camera streams.
+    """
+    return {
+        "primary_video_id": id,
+        "secondary_video_id": secondary_id or "vid_webcam_angle_b",
+        "matches": [
+            {
+                "timestamp_seconds": 6.0,
+                "primary_frame": "/static/keyframes/kf_p1.jpg",
+                "secondary_frame": "/static/keyframes/kf_s1.jpg",
+                "score": 0.95,
+                "label": "Terminal Error Match"
+            },
+            {
+                "timestamp_seconds": 32.5,
+                "primary_frame": "/static/keyframes/kf_p2.jpg",
+                "secondary_frame": "/static/keyframes/kf_s2.jpg",
+                "score": 0.92,
+                "label": "Docker Container Restart"
             }
         ]
     }

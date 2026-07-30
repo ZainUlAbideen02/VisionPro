@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     # Clerk Auth
     CLERK_SECRET_KEY: str = os.getenv("CLERK_SECRET_KEY", "sk_test_mock_clerk_secret_key_for_dev")
     
+    # Groq LPU API Config
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "gsk_mock_groq_api_key")
+    
     # Storage Paths
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     UPLOAD_DIR: str = os.path.join(BASE_DIR, "data", "uploads")
