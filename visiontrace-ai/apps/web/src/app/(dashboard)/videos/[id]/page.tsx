@@ -7,7 +7,8 @@ import { ExportModal } from '@/components/video/ExportModal';
 import { VideoSummaryDrawer } from '@/components/video/VideoSummaryDrawer';
 import { DualStreamPlayer } from '@/components/video/DualStreamPlayer';
 import { VideoChatSidebar } from '@/components/video/VideoChatSidebar';
-import { Search, Sparkles, Loader2, Filter, Info, PlayCircle, Download, Layers, Monitor, Bot, Grid } from 'lucide-react';
+import { LiveStreamPlayer } from '@/components/video/LiveStreamPlayer';
+import { Search, Sparkles, Loader2, Filter, Info, PlayCircle, Download, Layers, Monitor, Bot, Grid, Radio } from 'lucide-react';
 import { useVideoStore } from '@/lib/store';
 
 export default function VideoStudioPage() {
@@ -23,7 +24,7 @@ export default function VideoStudioPage() {
   } = useVideoStore();
 
   const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'player' | 'dual' | 'summary'>('player');
+  const [activeTab, setActiveTab] = useState<'player' | 'dual' | 'summary' | 'live'>('player');
   const [rightPaneMode, setRightPaneMode] = useState<'results' | 'copilot'>('results');
 
   const sampleSearchQueries = [
@@ -87,6 +88,14 @@ export default function VideoStudioPage() {
             >
               AI Summary
             </button>
+            <button
+              onClick={() => setActiveTab('live')}
+              className={`px-3 py-1 rounded-pill font-semibold transition-all flex items-center gap-1 ${
+                activeTab === 'live' ? 'bg-red-500 text-white font-bold shadow-lg' : 'text-red-400 hover:text-red-300'
+              }`}
+            >
+              <Radio className="w-3 h-3 animate-pulse" /> Live Stream
+            </button>
           </div>
 
           <button
@@ -101,11 +110,12 @@ export default function VideoStudioPage() {
 
       {/* Dual-Pane Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* LEFT PANE: Video Player / Dual Stream / AI Summary (7 Columns on LG) */}
+        {/* LEFT PANE: Video Player / Dual Stream / AI Summary / Live Stream (7 Columns on LG) */}
         <div className="lg:col-span-7 space-y-4 sticky top-24">
           {activeTab === 'player' && <InteractivePlayer />}
           {activeTab === 'dual' && <DualStreamPlayer />}
           {activeTab === 'summary' && <VideoSummaryDrawer />}
+          {activeTab === 'live' && <LiveStreamPlayer />}
 
           {/* Quick Info Callout */}
           <div className="p-4 rounded-card bg-surface-card border border-surface-border flex items-start space-x-3 text-xs text-white/70 backdrop-blur-xl">

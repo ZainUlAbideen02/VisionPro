@@ -4,13 +4,13 @@ from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-class YOLOv8ObjectDetector:
+class YOLO11ObjectDetector:
     """
-    Real-Time Object Detection Engine (YOLOv8 / ONNX Runtime).
+    Real-Time Object Detection Engine (YOLO11 / ONNX Edge Runtime).
     Extracts bounding boxes, object class labels, and detection confidence scores for video keyframes.
     """
 
-    def __init__(self, model_name: str = "yolov8n.pt"):
+    def __init__(self, model_name: str = "yolo11n.pt"):
         self.model_name = model_name
         self._yolo_model = None
 
@@ -18,7 +18,7 @@ class YOLOv8ObjectDetector:
         if self._yolo_model is None:
             try:
                 from ultralytics import YOLO
-                logger.info(f"Loading YOLOv8 object detection model '{self.model_name}'...")
+                logger.info(f"Loading YOLO11 object detection model '{self.model_name}'...")
                 self._yolo_model = YOLO(self.model_name)
             except Exception as e:
                 logger.warning(f"Notice: ultralytics library unavailable ({e}). Activating high-fidelity fallback detector.")
@@ -72,4 +72,4 @@ class YOLOv8ObjectDetector:
             }
         ]
 
-object_detector_service = YOLOv8ObjectDetector()
+object_detector_service = YOLO11ObjectDetector()

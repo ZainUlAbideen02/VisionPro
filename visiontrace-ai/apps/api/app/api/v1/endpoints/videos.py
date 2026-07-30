@@ -110,3 +110,18 @@ async def get_synchronized_matches(id: str, secondary_id: Optional[str] = None):
             }
         ]
     }
+
+class VLMExplainRequest(BaseModel):
+    keyframe_id: str = Field(..., description="Target keyframe ID for deep visual reasoning")
+    prompt: Optional[str] = Field(default=None, description="Optional prompt focusing VLM analysis")
+
+@router.post("/videos/vlm-explain", status_code=status.HTTP_200_OK)
+async def explain_keyframe_vlm(request: VLMExplainRequest):
+    """
+    Performs on-device VLM deep visual reasoning (Qwen2.5-VL / Moondream2) over a video keyframe image.
+    """
+    from app.services.vlm_reasoner import vlm_reasoner_service
+    return vlm_reasoner_service.explain_keyframe_scene(
+        keyframe_id=request.keyframe_id,
+        prompt=request.prompt
+    )
