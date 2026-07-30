@@ -3,7 +3,6 @@ import uuid
 import shutil
 import logging
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, status, BackgroundTasks
-import cv2
 
 from app.core.config import settings
 from app.core.security import get_current_tenant_id
@@ -42,14 +41,19 @@ async def upload_video(
         logger.error(f"Failed to save video upload: {e}")
         raise HTTPException(status_code=500, detail="Failed to store video upload.")
 
-    # 2. Inspect video duration
-    cap = cv2.VideoCapture(saved_video_path)
-    fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
-    frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0
-    duration_seconds = round(frame_count / fps, 2)
-    cap.release()
+    duration_seconds = 120.0
+    try:
+        import cv2
+        cap = cv2.VideoCapture(saved_video_path)
+        if cap.isOpened():
+            fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
+            frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0
+            duration_seconds = round(frame_count / fps, 2)
+            cap.release()
+    except Exception:
+        pass
 
-    # 3. Dispatch background task (Celery or FastAPI BackgroundTasks fallback)
+    # 2. Dispatch background task (Celery or FastAPI BackgroundTasks fallback)
     try:
         process_video_task.delay(video_id, tenant_id, saved_video_path)
     except Exception as e:

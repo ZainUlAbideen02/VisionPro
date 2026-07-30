@@ -9,34 +9,48 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        welcomeBlue: '#5B6CFF',
+        welcomeGreen: '#00EB8D',
+        welcomeYellow: '#F3FFAB',
+        welcomeDark: '#000000',
+        welcomeCard: 'rgba(255, 255, 255, 0.08)',
+        welcomeBorder: 'rgba(255, 255, 255, 0.1)',
         brand: {
           50: '#eef2ff',
           100: '#e0e7ff',
-          500: '#6366f1',
+          500: '#5B6CFF',
           600: '#4f46e5',
           700: '#4338ca',
           900: '#312e81',
         },
         cyanGlow: '#06b6d4',
         accentViolet: '#a855f7',
-        surface: {
-          dark: '#0b0f19',
-          card: '#131927',
-          border: '#1f293d',
-          hover: '#1a2235'
-        }
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       animation: {
-        'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'glow-cyan': 'glow 2s ease-in-out infinite alternate',
+        'marquee-up': 'marqueeUp 20s linear infinite',
+        'marquee-down': 'marqueeDown 20s linear infinite',
+        'pulse-glow': 'pulseGlow 4s ease-in-out infinite alternate',
+        'float-slow': 'float 6s ease-in-out infinite',
       },
       keyframes: {
-        glow: {
-          '0%': { boxShadow: '0 0 15px rgba(6, 182, 212, 0.3)' },
-          '100%': { boxShadow: '0 0 30px rgba(168, 85, 247, 0.6)' },
+        marqueeUp: {
+          '0%': { transform: 'translateY(0%)' },
+          '100%': { transform: 'translateY(-50%)' },
+        },
+        marqueeDown: {
+          '0%': { transform: 'translateY(-50%)' },
+          '100%': { transform: 'translateY(0%)' },
+        },
+        pulseGlow: {
+          '0%': { opacity: '0.4', transform: 'scale(1)' },
+          '100%': { opacity: '0.8', transform: 'scale(1.08)' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
         }
       }
     },

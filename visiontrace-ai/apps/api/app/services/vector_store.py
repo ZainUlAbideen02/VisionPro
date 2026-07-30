@@ -36,8 +36,10 @@ class VectorStoreService:
                         distance=Distance.COSINE
                     )
                 )
-                
-                # Create payload index on tenant_id for high performance multi-tenant search
+                logger.info(f"Qdrant collection '{self.collection_name}' created successfully.")
+            
+            # Ensure payload indices exist
+            try:
                 self.client.create_payload_index(
                     collection_name=self.collection_name,
                     field_name="tenant_id",
@@ -48,7 +50,9 @@ class VectorStoreService:
                     field_name="video_id",
                     field_schema=models.PayloadSchemaType.KEYWORD
                 )
-                logger.info(f"Qdrant collection '{self.collection_name}' created successfully.")
+            except Exception:
+                pass # Payload index already exists
+                
         except Exception as e:
             logger.error(f"Error initializing Qdrant collection: {e}")
 
@@ -71,7 +75,7 @@ class VectorStoreService:
                 "timestamp_seconds": kf["timestamp_seconds"],
                 "frame_index": kf["frame_index"],
                 "thumbnail_url": kf["thumbnail_url"],
-                "frame_path": kf["frame_path"]
+                "frame_path": kf.get("frame_path", "")
             }
             points.append(
                 PointStruct(
