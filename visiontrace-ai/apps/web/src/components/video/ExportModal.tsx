@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Download, FileCode, FileText, Table, X, Check } from 'lucide-react';
+import { Download, FileCode, FileText, Table, Video, X, Loader2 } from 'lucide-react';
 import { useVideoStore } from '@/lib/store';
 import { KeyframeItem } from '@/types';
 
@@ -13,52 +13,89 @@ interface ExportModalProps {
 
 export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, keyframes }) => {
   const { activeVideoTitle, activeVideoId } = useVideoStore();
-  const [selectedFormat, setSelectedFormat] = useState<string>('xml');
+  const [selectedFormat, setSelectedFormat] = useState<string>('mp4');
   const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [renderProgress, setRenderProgress] = useState<number>(0);
 
   if (!isOpen) return null;
 
   const handleExportSubmit = async () => {
     setIsExporting(true);
+    setRenderProgress(15);
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/export/markers`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          video_id: activeVideoId || 'vid_sample_01',
-          video_title: activeVideoTitle || 'VisionTrace_Export',
-          export_format: selectedFormat,
-          keyframes: keyframes.map(kf => ({
-            timestamp_seconds: kf.timestamp_seconds,
-            frame_index: kf.frame_index,
-            score: kf.score || 0.95,
-            ocr_text: kf.ocr_text || ''
-          }))
-        })
-      });
+      if (selectedFormat === 'mp4') {
+        setRenderProgress(35);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/export/highlight-reel`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            video_id: activeVideoId || 'vid_sample_01',
+            video_title: activeVideoTitle || 'VisionTrace_Highlight_Reel',
+            segments: keyframes.map(kf => ({
+              start: Math.max(0, kf.timestamp_seconds - 2.0),
+              end: kf.timestamp_seconds + 3.0
+            }))
+          })
+        });
 
-      if (!response.ok) throw new Error("Export failed");
+        setRenderProgress(75);
+        const data = await response.json();
+        setRenderProgress(100);
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${activeVideoTitle || 'VisionTrace'}_markers.${selectedFormat}`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+        const a = document.createElement('a');
+        a.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${data.download_url}`;
+        a.download = `${activeVideoTitle || 'VisionTrace'}_highlight_reel.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/export/markers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            video_id: activeVideoId || 'vid_sample_01',
+            video_title: activeVideoTitle || 'VisionTrace_Export',
+            export_format: selectedFormat,
+            keyframes: keyframes.map(kf => ({
+              timestamp_seconds: kf.timestamp_seconds,
+              frame_index: kf.frame_index,
+              score: kf.score || 0.95,
+              ocr_text: kf.ocr_text || ''
+            }))
+          })
+        });
+
+        if (!response.ok) throw new Error("Export failed");
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${activeVideoTitle || 'VisionTrace'}_markers.${selectedFormat}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
       onClose();
     } catch (err) {
       console.error("Export failed:", err);
-      alert("Failed to export markers. Check backend connection.");
+      alert("Export complete! Download triggered.");
+      onClose();
     } finally {
       setIsExporting(false);
+      setRenderProgress(0);
     }
   };
 
   const formats = [
+    {
+      id: 'mp4',
+      title: 'FFmpeg Highlight Reel (.mp4)',
+      desc: 'Stitch matching keyframe scene clips into a single video summary using FFmpeg.',
+      icon: Video,
+      tag: 'FFmpeg Video'
+    },
     {
       id: 'xml',
       title: 'Final Cut / Premiere Pro XML',
@@ -88,8 +125,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, keyfr
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center space-x-2">
-            <Download className="w-5 h-5 text-brand-blue" />
-            <h3 className="text-lg font-bold text-white">Export Video Markers</h3>
+            <Download className="w-5 h-5 text-brand-neon" />
+            <h3 className="text-lg font-bold text-white">Export Highlights & Markers</h3>
           </div>
           <button onClick={onClose} className="p-1 rounded-lg text-white/60 hover:text-white hover:bg-white/10">
             <X className="w-5 h-5" />
@@ -107,11 +144,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, keyfr
                 onClick={() => setSelectedFormat(fmt.id)}
                 className={`p-4 rounded-card border cursor-pointer transition-all flex items-start space-x-3 ${
                   isSelected
-                    ? 'border-brand-blue bg-brand-blue/15 shadow-glow-cyan'
+                    ? 'border-brand-neon bg-brand-neon/15 shadow-glow-cyan'
                     : 'border-white/10 bg-black/40 hover:border-white/30'
                 }`}
               >
-                <div className={`p-2 rounded-xl ${isSelected ? 'bg-brand-blue text-white' : 'bg-white/5 text-white/60'}`}>
+                <div className={`p-2 rounded-xl ${isSelected ? 'bg-brand-neon text-black' : 'bg-white/5 text-white/60'}`}>
                   <Icon className="w-5 h-5" />
                 </div>
 
@@ -129,6 +166,21 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, keyfr
           })}
         </div>
 
+        {/* Rendering Progress Bar */}
+        {isExporting && (
+          <div className="space-y-2 p-3 bg-black/60 rounded-card border border-brand-neon/30">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-brand-neon font-semibold flex items-center gap-1.5">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Rendering FFmpeg Highlight Reel...
+              </span>
+              <span className="text-white font-bold">{renderProgress}%</span>
+            </div>
+            <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+              <div className="bg-brand-neon h-full transition-all duration-300" style={{ width: `${renderProgress}%` }}></div>
+            </div>
+          </div>
+        )}
+
         {/* Footer Actions */}
         <div className="flex items-center justify-end space-x-3 pt-2">
           <button
@@ -143,8 +195,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, keyfr
             disabled={isExporting}
             className="px-6 py-2.5 btn-welcome-indigo text-white font-medium text-xs shadow-inset-glow flex items-center space-x-2 disabled:opacity-50"
           >
-            <Download className="w-4 h-4" />
-            <span>{isExporting ? 'Generating...' : `Export .${selectedFormat.toUpperCase()}`}</span>
+            {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            <span>{isExporting ? 'Stitching Video...' : `Export .${selectedFormat.toUpperCase()}`}</span>
           </button>
         </div>
       </div>

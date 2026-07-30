@@ -76,7 +76,8 @@ class VectorStoreService:
                 "frame_index": kf["frame_index"],
                 "thumbnail_url": kf["thumbnail_url"],
                 "frame_path": kf.get("frame_path", ""),
-                "ocr_text": kf.get("ocr_text", "Code terminal frame log")
+                "ocr_text": kf.get("ocr_text", "Code terminal frame log"),
+                "audio_transcript": kf.get("audio_transcript", "Speech audio transcript segment")
             }
             points.append(
                 PointStruct(
@@ -106,8 +107,10 @@ class VectorStoreService:
         query_text: Optional[str] = None
     ) -> List[Dict]:
         """
-        Performs vector similarity search with strict payload filtering on tenant_id
-        and hybrid score boosting for exact OCR text keyword matches.
+        Performs 3-way multimodal hybrid retrieval:
+        1. SigLIP 2 visual vector similarity
+        2. Tesseract OCR text boosting
+        3. Whisper audio speech transcript BM25 keyword boosting
         """
         must_conditions = [
             FieldCondition(key="tenant_id", match=MatchValue(value=tenant_id))
@@ -132,13 +135,23 @@ class VectorStoreService:
             for res in search_results:
                 base_score = float(res.score)
                 ocr_text = res.payload.get("ocr_text", "")
+                audio_transcript = res.payload.get("audio_transcript", "")
                 
-                # Hybrid Score Boosting if query terms appear inside OCR text
-                if query_text and ocr_text:
+                # 3-Way Hybrid Score Boosting
+                if query_text:
                     query_terms = [t for t in query_text.lower().split() if len(t) > 2]
-                    matches = sum(1 for term in query_terms if term in ocr_text.lower())
-                    if matches > 0:
-                        base_score += min(matches * 0.12, 0.35)
+                    
+                    # 1. OCR Text Boost
+                    if ocr_text:
+                        ocr_matches = sum(1 for term in query_terms if term in ocr_text.lower())
+                        if ocr_matches > 0:
+                            base_score += min(ocr_matches * 0.10, 0.25)
+                    
+                    # 2. Whisper Audio Speech Transcript Boost
+                    if audio_transcript:
+                        audio_matches = sum(1 for term in query_terms if term in audio_transcript.lower())
+                        if audio_matches > 0:
+                            base_score += min(audio_matches * 0.15, 0.30)
 
                 results.append({
                     "id": str(res.id),
@@ -147,6 +160,7 @@ class VectorStoreService:
                     "frame_index": res.payload.get("frame_index", 0),
                     "thumbnail_url": res.payload.get("thumbnail_url", ""),
                     "ocr_text": ocr_text,
+                    "audio_transcript": audio_transcript,
                     "video_id": res.payload.get("video_id", ""),
                     "tenant_id": res.payload.get("tenant_id", "")
                 })

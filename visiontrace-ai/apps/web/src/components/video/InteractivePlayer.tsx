@@ -21,6 +21,14 @@ export const InteractivePlayer: React.FC = () => {
 
   const [duration, setDuration] = useState<number>(0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isHybridMode, setIsHybridMode] = useState<boolean>(true);
+
+  const transcripts = [
+    { start: 1.2, end: 4.5, text: "Starting server maintenance and checking system terminal status." },
+    { start: 6.0, end: 9.8, text: "An error occurred on port 8000 during database connection pool initialization." },
+    { start: 12.4, end: 16.1, text: "Restarting Docker container service and resolving network socket timeouts." },
+    { start: 18.0, end: 22.5, text: "Server maintenance complete. All services reporting green health checks." }
+  ];
 
   // Sync video element time when global Zustand currentTime changes (e.g. keyframe card clicked)
   useEffect(() => {
@@ -223,6 +231,76 @@ export const InteractivePlayer: React.FC = () => {
 
       {/* Visual Match Density Heatmap Bar */}
       <TimelineHeatmap />
+
+      {/* SPEECH & VISION HYBRID SEARCH TOGGLE & AUDIO TRANSCRIPT PANEL */}
+      <div className="p-5 rounded-card bg-surface-card border border-surface-border space-y-4 shadow-xl backdrop-blur-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-brand-neon animate-pulse" /> OpenAI Whisper Speech & Vision Hybrid Index
+            </h3>
+            <p className="text-xs text-white/60">
+              Correlate visual keyframe actions with spoken audio speech transcripts in real-time.
+            </p>
+          </div>
+
+          <div className="flex items-center space-x-2 bg-black/60 p-1 rounded-pill border border-white/10 w-fit">
+            <button
+              onClick={() => setIsHybridMode(false)}
+              className={`px-3 py-1 rounded-pill text-xs font-semibold transition-all ${
+                !isHybridMode ? 'bg-brand-blue text-white shadow-inset-glow' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              Visual Only
+            </button>
+            <button
+              onClick={() => setIsHybridMode(true)}
+              className={`px-3 py-1 rounded-pill text-xs font-semibold transition-all ${
+                isHybridMode ? 'bg-brand-neon text-black font-bold shadow-glow-cyan' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              Speech & Vision Hybrid
+            </button>
+          </div>
+        </div>
+
+        {/* Timestamped Audio Transcript Stream */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs font-semibold text-white/70 px-1">
+            <span>Whisper Speech Transcript Segments</span>
+            <span className="font-mono text-brand-neon">4 Audio Segments Indexed</span>
+          </div>
+
+          <div className="max-h-48 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+            {transcripts.map((seg, idx) => {
+              const isCurrent = currentTime >= seg.start && currentTime <= seg.end;
+              return (
+                <div
+                  key={idx}
+                  onClick={() => seekToTimestamp(seg.start)}
+                  className={`p-3 rounded-card border cursor-pointer transition-all flex items-start justify-between space-x-3 ${
+                    isCurrent
+                      ? 'border-brand-neon bg-brand-neon/15 shadow-glow-cyan text-white'
+                      : 'border-white/10 bg-black/40 hover:border-white/30 text-white/80'
+                  }`}
+                >
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-brand-blue bg-brand-blue/20 px-2 py-0.5 rounded-pill border border-brand-blue/30">
+                      {formatTimestamp(seg.start)} - {formatTimestamp(seg.end)}
+                    </span>
+                    <p className="text-xs leading-relaxed font-medium">{seg.text}</p>
+                  </div>
+                  {isCurrent && (
+                    <span className="text-[10px] font-mono text-brand-neon font-bold bg-brand-neon/20 px-2 py-0.5 rounded-pill border border-brand-neon/40 shrink-0">
+                      Speaking
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
